@@ -50,6 +50,17 @@ function saveDatabase()
 	file.close()
 end
 
+function ID_Output()
+	c:send("Known users:\n")
+	index = 0
+	for k,v in pairs(database) do
+		ibuttontable[index] = k
+		c:send("["..index.."] ".. v .. "\n")
+		index++
+	end
+	c:send("> ")
+end
+
 tmr.alarm(3, 100, 1, function()
     if not isDoorOpen() then
         local addr
@@ -110,18 +121,12 @@ local stateMachine = {
 			netState = 2
 		elseif line == "del" then
 			c:send("Which index to delete?\n")
-			c:send("Known users:\n")
-			index = 0
-			for k,v in pairs(database) do
-				ibuttontable[index] = k
-				c:send("["..index.."] ".. v .. "\n")
-				index++
-			end
-			c:send("> ")
+			ID_Output()
 			netState = 3
 		else
 			c:send("Unrecognized command.\n> ")
 			netState = 0
+		end
 	end,
 	
 	
@@ -134,19 +139,21 @@ local stateMachine = {
 	
 	[3] = function(c, line)
 		delindex = tonumber(line)
-		if delindex = nil
-			c:send("Please use valid Indexnumber")			
-			netState = 1
-		elseif delindex < 0 and delindex > index
+		if delindex == nil then
+			c:send("Please enter valid Indexnumber!\n")	
+			ID_Output()
+			netState = 3
+		elseif delindex < 0 and delindex > index then
 			delid = ibuttontable[delindex]
 			database[delid] = nil
 			saveDatabase()		
 			ibuttontable = {}
-			c:send("Index "..delindex.." deleted \n")
+			c:send("Index "..delindex.." deleted!\n")
 		else
-			c:send("Index out of bound exception, try again! \n ")
-			ibuttontable = {}			
-			netState = 1
+			c:send("Index out of bound exception, try again!\n ")
+			ID_Output()		
+			netState = 3
+		end
 	end,
 	
 	[4] = function(c, line)
