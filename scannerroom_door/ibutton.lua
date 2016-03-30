@@ -16,6 +16,10 @@ local learnMode = false
 local newName = ""
 local netState = 0
 local learnModeSocket = nil
+local delindex = -1
+local index = 0
+local delid = ""
+local ibuttontable = {}
 
 local password = "CHANGETHIS"
 
@@ -82,7 +86,7 @@ end)
 local stateMachine = {
 	[0] = function(c, line)
 		if line == password then
-			c:send("Please enter name:\n> ")
+			c:send("Please enter mode [add or del]:\n> ")
 			netState = 1
 		elseif line == "help" then
 			c:send("Help is for the weak.\n> ")
@@ -99,13 +103,43 @@ local stateMachine = {
 			c:send("Unrecognized command.\n> ")
 		end
 	end,
+	
 	[1] = function(c, line)
+		if line == "add" then
+			c:send("Please enter name:\n>")
+			netState = 2
+		elseif line == "del" then
+			c:send("Which index to delete?\n")
+			c:send("Known users:\n")
+			for k,v in pairs(database) do
+				ibuttontable[index] = k
+				c:send("["..index"]".. v .. "\n")
+				index++
+			end
+			c:send("> ")
+			netState = 3
+		else
+			c:send("Unrecognized command.\n> ")
+			netState = 0
+	end,
+	
+	
+	[2] = function(c, line)
 		newName = line
 		learnMode = true
 		c:send("Learn mode activated. Please connect new iButton device.\n")
 		learnModeSocket = c
 	end,
-	[2] = function(c, line)
+	
+	[3] = function(c, line)
+		delindex = line
+		delid = ibuttontable[delindex]
+		database[delid] = nil
+		saveDatabase()
+		c:send("Index " delindex " deleted \n")
+	end,
+	
+	[4] = function(c, line)
 	end,
 }
 
