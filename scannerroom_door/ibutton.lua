@@ -17,7 +17,7 @@ local newName = ""
 local netState = 0
 local learnModeSocket = nil
 local delindex = -1
-local index = 0
+local index = 1
 local delid = ""
 local ibuttontable = {}
 
@@ -50,9 +50,9 @@ function saveDatabase()
 	file.close()
 end
 
-function ID_Output()
+function ID_Output(c)
 	c:send("Known users:\n")
-	index = 0
+	index = 1
 	for k,v in pairs(database) do
 		ibuttontable[index] = k
 		c:send("["..index.."] ".. v .. "\n")
@@ -141,9 +141,9 @@ local stateMachine = {
 		delindex = tonumber(line)
 		if delindex == nil then
 			c:send("Please enter valid Indexnumber!\n")	
-			ID_Output()
+			ID_Output(c)
 			netState = 3
-		elseif delindex < 0 and delindex > index then
+		elseif delindex > 0 and delindex <= index then
 			delid = ibuttontable[delindex]
 			database[delid] = nil
 			saveDatabase()		
@@ -151,7 +151,7 @@ local stateMachine = {
 			c:send("Index "..delindex.." deleted!\n")
 		else
 			c:send("Index out of bound exception, try again!\n ")
-			ID_Output()		
+			ID_Output(c)		
 			netState = 3
 		end
 	end,
