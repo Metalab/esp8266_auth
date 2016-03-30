@@ -134,16 +134,19 @@ local stateMachine = {
 	
 	[3] = function(c, line)
 		delindex = tonumber(line)
-		if delindex < 0 and delindex > index
+		if delindex = nil
+			c:send("Please use valid Indexnumber")			
+			netState = 1
+		elseif delindex < 0 and delindex > index
 			delid = ibuttontable[delindex]
 			database[delid] = nil
 			saveDatabase()		
 			ibuttontable = {}
 			c:send("Index "..delindex.." deleted \n")
 		else
-			c:send("Index out of bound exception \n ")
+			c:send("Index out of bound exception, try again! \n ")
 			ibuttontable = {}			
-			netState = 0
+			netState = 1
 	end,
 	
 	[4] = function(c, line)
