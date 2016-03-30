@@ -138,15 +138,11 @@ local stateMachine = {
 			delid = ibuttontable[delindex]
 			database[delid] = nil
 			saveDatabase()		
-			for i,v in ipairs(ibuttontable) do 
-				table.remove(ibuttontable, i) 
-			end	
+			ibuttontable = {}
 			c:send("Index "..delindex.." deleted \n")
 		else
 			c:send("Index out of bound exception \n ")
-			for i,v in ipairs(ibuttontable) do 
-				table.remove(ibuttontable, i) 
-			end		
+			ibuttontable = {}			
 			netState = 0
 	end,
 	
