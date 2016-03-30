@@ -113,7 +113,7 @@ local stateMachine = {
 			c:send("Known users:\n")
 			for k,v in pairs(database) do
 				ibuttontable[index] = k
-				c:send("["..index"]".. v .. "\n")
+				c:send("["..index.."] ".. v .. "\n")
 				index++
 			end
 			c:send("> ")
