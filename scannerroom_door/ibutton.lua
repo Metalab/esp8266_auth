@@ -111,6 +111,7 @@ local stateMachine = {
 		elseif line == "del" then
 			c:send("Which index to delete?\n")
 			c:send("Known users:\n")
+			index = 0
 			for k,v in pairs(database) do
 				ibuttontable[index] = k
 				c:send("["..index.."] ".. v .. "\n")
