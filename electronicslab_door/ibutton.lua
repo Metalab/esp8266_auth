@@ -15,7 +15,7 @@ ow.setup(pin)
 local database = dofile('database.lua')
 local learnMode = false
 local newName = ""
-local netState = 0
+netState = 0
 local learnModeSocket = nil
 
 

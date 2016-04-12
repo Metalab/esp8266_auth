@@ -56,7 +56,7 @@ function ID_Output(c)
 	for k,v in pairs(database) do
 		ibuttontable[index] = k
 		c:send("["..index.."] ".. v .. "\n")
-		index++
+		index=index+1
 	end
 	c:send("> ")
 end
@@ -121,7 +121,7 @@ local stateMachine = {
 			netState = 2
 		elseif line == "del" then
 			c:send("Which index to delete?\n")
-			ID_Output()
+			ID_Output(c)
 			netState = 3
 		else
 			c:send("Unrecognized command.\n> ")
@@ -147,7 +147,7 @@ local stateMachine = {
 			database[delid] = nil
 			saveDatabase()		
 			ibuttontable = {}
-			c:send("Index "..delindex.." deleted!\n")
+			c:send("Index "..index.." deleted!\n")
 			netState = 0
 		else
 			c:send("Index out of bound exception, try again!\n ")
