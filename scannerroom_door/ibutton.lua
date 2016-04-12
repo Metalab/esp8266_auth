@@ -16,6 +16,10 @@ local learnMode = false
 local newName = ""
 local netState = 0
 local learnModeSocket = nil
+local delindex = -1
+local index = 1
+local delid = ""
+local ibuttontable = {}
 
 local password = "CHANGETHIS"
 
@@ -44,6 +48,17 @@ function saveDatabase()
 
 	file.writeline("}")
 	file.close()
+end
+
+function ID_Output(c)
+	c:send("Known users:\n")
+	index = 1
+	for k,v in pairs(database) do
+		ibuttontable[index] = k
+		c:send("["..index.."] ".. v .. "\n")
+		index=index+1
+	end
+	c:send("> ")
 end
 
 tmr.alarm(3, 100, 1, function()
@@ -82,7 +97,7 @@ end)
 local stateMachine = {
 	[0] = function(c, line)
 		if line == password then
-			c:send("Please enter name:\n> ")
+			c:send("Please enter mode [add or del]:\n> ")
 			netState = 1
 		elseif line == "help" then
 			c:send("Help is for the weak.\n> ")
@@ -99,13 +114,48 @@ local stateMachine = {
 			c:send("Unrecognized command.\n> ")
 		end
 	end,
+	
 	[1] = function(c, line)
+		if line == "add" then
+			c:send("Please enter name:\n>")
+			netState = 2
+		elseif line == "del" then
+			c:send("Which index to delete?\n")
+			ID_Output(c)
+			netState = 3
+		else
+			c:send("Unrecognized command.\n> ")
+			netState = 0
+		end
+	end,
+	
+	
+	[2] = function(c, line)
 		newName = line
 		learnMode = true
 		c:send("Learn mode activated. Please connect new iButton device.\n")
 		learnModeSocket = c
 	end,
-	[2] = function(c, line)
+	
+	[3] = function(c, line)
+		delindex = tonumber(line)
+		if delindex == nil then
+			c:send("Please enter valid Indexnumber!\n")	
+			ID_Output(c)
+		elseif delindex > 0 and delindex <= index then
+			delid = ibuttontable[delindex]
+			database[delid] = nil
+			saveDatabase()		
+			ibuttontable = {}
+			c:send("Index "..index.." deleted!\n")
+			netState = 0
+		else
+			c:send("Index out of bound exception, try again!\n ")
+			ID_Output(c)		
+		end
+	end,
+	
+	[4] = function(c, line)
 	end,
 }
 
