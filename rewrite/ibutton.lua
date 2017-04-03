@@ -29,7 +29,7 @@ function list(c)
         if out ~= nil and count >= 0 then
             --debug output
             --print(out)
-            name = string.sub(out, 23)
+            name = string.sub(out, 22)
             name = string.sub(name, 1, -4)
             print("User: "..name)
             c:send("["..count.."] "..name.."\n")
@@ -90,7 +90,7 @@ end
 function addtoDatabase(name, KeyID)
     local writedb = ""
 
-    writedb = "['"..KeyID.."']= '"..name.."',\n"
+    writedb = "['"..KeyID.."']='"..name.."',\n"
     appendDatabase(writedb)
     
     usercount = usercount+1
@@ -117,7 +117,7 @@ function removeFromDatabase(number)
         count = count+1
     end
 	closeDatabase()
-    deleted = string.sub(deleted, 23)
+    deleted = string.sub(deleted, 22)
     deleted = string.sub(deleted, 1, -4)
     print("deleted following User: "..deleted.."\n")
     
