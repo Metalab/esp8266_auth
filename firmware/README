@@ -1,0 +1,17 @@
+esp_init_data_default.bin is for init data filesystem alignment of the ESP.
+
+1) flash the init data
+Following from https://nodemcu.readthedocs.io/en/master/en/flash/ :
+If you need to customize init data then first download the Espressif SDK 2.0.0 and extract esp_init_data_default.bin. Then flash that file just like you'd flash the firmware. The correct address for the init data depends on the capacity of the flash chip.
+
+    0x7c000 for 512 kB, modules like most ESP-01, -03, -07 etc.
+    0xfc000 for 1 MB, modules like ESP8285, PSF-A85, some ESP-01, -03 etc.
+    0x1fc000 for 2 MB
+    0x3fc000 for 4 MB, modules like ESP-12E, NodeMCU devkit 1.0, WeMos D1 mini
+    
+If you build your firmware with the cloud builder or the Docker image, or any other method that produces a combined binary, then you can flash that file directly to address 0x00000.
+
+2) flash the nodemcu build
+Actual Build: nodemcu-master-8-modules-2017-04-02-20-28-45-integer.bin
+
+3) flash the Lua code with example ESPlorer by 4refr0nt
