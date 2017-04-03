@@ -16,8 +16,6 @@ local newName = ""
 local netState = 0
 local learnModeSocket = nil
 local usercount = -1
-local testid = "XXXXX"
---local dummyid = "42-000000000000"
 
 local password = "CHANGETHIS"
 
@@ -26,23 +24,22 @@ function list(c)
     local count = 0
     local out = ""
     while out ~= nil do
-        line = readDatabaseline()
-        out = line
+        out = readDatabaseline()
         local name = ""
-        if line ~= nil and count > 0 and line ~= "}\n" then
+        if out ~= nil and count >= 0 then
             --debug output
-            --print(line)
-            name = string.sub(line, 22)
+            --print(out)
+            name = string.sub(out, 23)
             name = string.sub(name, 1, -4)
-            name = name.."\n"
-            c:send("["..count.."] "..name.."")
-        end   
+            print("User: "..name)
+            c:send("["..count.."] "..name.."\n")
+        end  
         count = count+1
     end
 	closeDatabase()  
 
-    usercount=count-3
-    print(usercount)
+    usercount=count-1
+    print("usercount: "..usercount)
     out = ""
     c:send("> ")
 end
@@ -52,14 +49,12 @@ function setUsercount()
     local count = 0
     local out = ""
     while out ~= nil do
-        line = readDatabaseline()
-        out = line
-        local name = ""
+        out = readDatabaseline()
         count = count+1
     end
     closeDatabase()  
-    
-    usercount=count-3
+    usercount=count-1
+    print("Usercount set to "..usercount)
 end
 
 
@@ -70,8 +65,14 @@ end
 
 function rewriteDatabase(database)
 	file.open( "database.lua", "w+" )
-    file.write(database)
+	file.write(database)
 	closeDatabase()
+end
+
+function appendDatabase(dataline)
+    file.open( "database.lua", "a+" )
+    file.write(dataline)
+    closeDatabase()
 end
 
 
@@ -87,30 +88,13 @@ end
 
 
 function addtoDatabase(name, KeyID)
-    local count = 0
     local writedb = ""
+
+    writedb = "['"..KeyID.."']= '"..name.."',\n"
+    appendDatabase(writedb)
     
-    openDatabase()
-    while count < usercount+3 do
-        line = readDatabaseline()
-        if line == "}\n" then
-            break
-        end
-        if line ~= nilr then
-            --debug output
-            --print(line)
-            writedb = writedb..line
-        end
-        count = count+1
-    end
-    closeDatabase()
-    
-    writedb = writedb.."['"..KeyID.."']='"..name.."',\n}\n"
-    rewriteDatabase(writedb)
-    
-    writedb = ""
     usercount = usercount+1
-    print(usercount)
+    print("Usercount after add: "..usercount)
 end
 
 
@@ -118,58 +102,51 @@ function removeFromDatabase(number)
 	local count = 0
 	local line = ""
 	local newdb = ""
-    local deleted = ""
+	local deleted = ""
     
     openDatabase()
-    while count < usercount+4 do
+    while count < usercount do
         line = readDatabaseline()
         if count == number then
             deleted = line
         end
         
         if line ~= nil and count ~= number then
-            --print(line)
-            --print(count)
             newdb = newdb..line
         end
         count = count+1
     end
 	closeDatabase()
-    --Output for Debugging purposes
-    --print(newdb)
-    deleted = string.sub(deleted, 22)
+    deleted = string.sub(deleted, 23)
     deleted = string.sub(deleted, 1, -4)
-    deleted = deleted.."\n"
-    print("deleted User: "..deleted)
+    print("deleted following User: "..deleted.."\n")
     
     --rewrite Database without deleted user
-    rewriteDatabase(newdb)
-    
-    newdb = ""
-    
+    rewriteDatabase(newdb)  
+    newdb = ""  
 	usercount = usercount-1
+    print("Usercount after del: "..usercount)
 end
 
 function checkID(ID)
-	--todo FIX checkID Function
-    local back = false
     local id2 = ""
     local count = 0
     local line = ""
+    print("GivenID: "..ID)
     openDatabase()
-    while count < usercount+4 do
+    while count < usercount do
         line = readDatabaseline()
-        id2 = string.match(line, ID)
+        id2 = string.sub(line, 3, 17)
+        print ("found ID: "..id2)
         if id2 == ID then
-            back = true
-            break
+            closeDatabase()
+            return true
         end
         count=count+1
     end
     closeDatabase()
-
-    
-    return back
+    print("count is "..count)
+    return false
 end
 
 
@@ -203,13 +180,10 @@ tmr.alarm(3, 100, 1, function()
 					addtoDatabase(newName, id)
                     learnMode = false
                     netState = 0
-                    learnModeSocket:send("Registered new device " .. id .. "\nHave a nice day!\n> ")
+                    learnModeSocket:send("Registered new device\nHave a nice day!\n> ")
                 else
-                    --TODO check name function
-                    local check = checkID(id)
-                    --name = database[id]
-                    if check then
-                        print("Detected user " .. name)
+                    if checkID(id) then
+                        print("Detected legit user with ID "..id)
                         doorOpen(function()
                         end)
                     end
@@ -247,11 +221,6 @@ local stateMachine = {
             c:send("Which user to delete? Choose a Number\n")
             list(c)
             netState = 3
-        elseif line == "check" then
-            if checkID(testid) then
-                c:send("SUCCESS!\n>")
-            end
-            netState = 0
         else
             c:send("Unrecognized command.\n> ")
             netState = 0
@@ -260,7 +229,6 @@ local stateMachine = {
     
     
     [2] = function(c, line)
-        setUsercount()
         newName = line
         learnMode = true
         c:send("Learn mode activated. Please connect new iButton device.\n")
@@ -269,17 +237,18 @@ local stateMachine = {
     
     [3] = function(c, line)
         local delindex = tonumber(line)
-
+        
         if delindex == nil then
             c:send("Please enter valid Indexnumber!\n")
             list(c)
             
-        elseif delindex > 0 and delindex <= usercount then
-           c:send("Got "..delindex.."\n> ")
+        elseif delindex >= 0 and delindex < usercount then
+           c:send("Deleting Number "..delindex.."\n> ")
            removeFromDatabase(delindex)
            c:send("User deleted!\n> ")
            netState = 0
         else
+            print("delindex was :"..delindex)
             c:send("Index out of bound exception, try again!\n")
             list(c)    
         end 
@@ -290,6 +259,7 @@ local stateMachine = {
 sv=net.createServer(net.TCP,40)
 sv:listen(1337,function(c)
     c:send("Metalab Scannerdoor Control. Authorized personell only.\n> ")
+    netState = 0
     local buffer = ""
     c:on("receive", function(c, pl)
         buffer = buffer .. pl
