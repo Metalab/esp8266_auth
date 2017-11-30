@@ -1,5 +1,8 @@
 esp_init_data_default.bin is for init data filesystem alignment of the ESP.
 
+0) erase flash of ESP
+./esptool.py --port /dev/ttyUSB0 erase_flash
+
 1) flash the init data
 Following from https://nodemcu.readthedocs.io/en/master/en/flash/ :
 If you need to customize init data then first download the Espressif SDK 2.0.0 and extract esp_init_data_default.bin. Then flash that file just like you'd flash the firmware. The correct address for the init data depends on the capacity of the flash chip.
@@ -9,9 +12,24 @@ If you need to customize init data then first download the Espressif SDK 2.0.0 a
     0x1fc000 for 2 MB
     0x3fc000 for 4 MB, modules like ESP-12E, NodeMCU devkit 1.0, WeMos D1 mini
     
+     ./esptool.py -p /dev/tty<SERIALPORT> write_flash -fm dio 0x00000 <binaryname>.bin 
+     
+     Example:
+     ./esptool.py -p /dev/ttyUSB0 write_flash -fm dio 0x3fc000 esp_init_data_default.bin 
+    
 If you build your firmware with the cloud builder or the Docker image, or any other method that produces a combined binary, then you can flash that file directly to address 0x00000.
 
 2) flash the nodemcu build
 Actual Build: nodemcu-master-8-modules-2017-04-02-20-28-45-integer.bin
 
+     ./esptool.py -p /dev/tty<SERIALPORT> write_flash -fm dio 0x00000 <binaryname>.bin 
+     
+     Example:
+     ./esptool.py -p /dev/ttyUSB0 write_flash -fm dio 0x00000 nodemcu-master-9-modules-integer-electronicslab.bin 
+
 3) flash the Lua code with example ESPlorer by 4refr0nt
+
+
+4) Example for full flash of both files in 1 command on WeMos-LoLin ESP Board. tty port may vary.
+./esptool.py --port /dev/ttyUSB0 erase_flash
+./esptool.py -p /dev/ttyUSB0 write_flash -fm dio -fs 32m 0x3fc000 esp_init_data_default.bin 0x00000 nodemcu-master-9-modules-integer-electronicslab.bin
