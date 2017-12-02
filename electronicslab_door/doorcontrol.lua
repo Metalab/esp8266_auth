@@ -8,10 +8,10 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
-local SWITCH = 7
-local DOORUP = 6
-local DOORDOWN = 0
-local LOGOUTBUTTON = 5
+local SWITCH = 7 -- GPIO13
+local DOORUP = 6 --GPIO12
+local DOORDOWN = 5 --GPIO14
+local LOGOUTBUTTON = 3 --GPIO0
 
 gpio.mode(SWITCH,gpio.OUTPUT)
 gpio.mode(DOORUP,gpio.OUTPUT)
@@ -20,6 +20,7 @@ gpio.mode(LOGOUTBUTTON, gpio.INT, gpio.PULLUP)
 gpio.write(SWITCH,gpio.HIGH)
 gpio.write(DOORUP,gpio.HIGH)
 gpio.write(DOORDOWN,gpio.HIGH)
+
 
 local doorIsMoving = false
 
@@ -57,6 +58,7 @@ gpio.trig(LOGOUTBUTTON, "down", function()
     tmr.alarm(5, 200, 0, function() -- debounce
         if not doorIsMoving and gpio.read(LOGOUTBUTTON) == 0 then
             blink_led_stop()
+            print("Got shutdown signal")
             doorDown(function()
                 blink_led()
             end)
