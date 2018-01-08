@@ -44,12 +44,12 @@ function doorDown(donecb)
     gpio.write(DOORDOWN,gpio.LOW)
     
     while gpio.read(LOGOUTBUTTON) == 0 do
-		-- closig while holding the button
+        -- closig while holding the button
     end
     
-	gpio.write(DOORDOWN,gpio.HIGH)
-	gpio.write(SWITCH,gpio.HIGH)
-	doorIsMoving = false
+    gpio.write(DOORDOWN,gpio.HIGH)
+    gpio.write(SWITCH,gpio.HIGH)
+    doorIsMoving = false
     donecb()
 end
 
