@@ -10,25 +10,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 --]]
 local SWITCH = 7 -- GPIO13
 local DOORUP = 6 --GPIO12
-local DOORDOWN = 5 --GPIO14
-local LOGOUTBUTTON = 3 --GPIO0
+--local DOORDOWN = 5 --GPIO14 replaced by hardwired button
+--local LOGOUTBUTTON = 3 --GPIO0 replaced by hardwired button
 
 gpio.mode(SWITCH,gpio.OUTPUT)
 gpio.mode(DOORUP,gpio.OUTPUT)
-gpio.mode(DOORDOWN,gpio.OUTPUT)
-gpio.mode(LOGOUTBUTTON, gpio.INT, gpio.PULLUP)
+--gpio.mode(DOORDOWN,gpio.OUTPUT)
+--gpio.mode(LOGOUTBUTTON, gpio.INT, gpio.PULLUP) 
 gpio.write(SWITCH,gpio.HIGH)
 gpio.write(DOORUP,gpio.HIGH)
-gpio.write(DOORDOWN,gpio.HIGH)
-
+--gpio.write(DOORDOWN,gpio.HIGH)
 
 local doorIsMoving = false
 
 function doorUp(donecb)
+    blink_led_stop()
     doorIsMoving = true
     gpio.write(SWITCH,gpio.LOW)
     gpio.write(DOORUP,gpio.LOW)
-    gpio.write(DOORDOWN,gpio.HIGH)
+    --gpio.write(DOORDOWN,gpio.HIGH)
     tmr.alarm(4, 27000, 0, function() -- measured ~25sec
         gpio.write(DOORUP,gpio.HIGH)
         gpio.write(SWITCH,gpio.HIGH)
@@ -37,34 +37,6 @@ function doorUp(donecb)
     end)
 end
 
-function doorDown(donecb)
-    doorIsMoving = true
-    gpio.write(SWITCH,gpio.LOW)
-    gpio.write(DOORUP,gpio.HIGH)
-    gpio.write(DOORDOWN,gpio.LOW)
-    
-    while gpio.read(LOGOUTBUTTON) == 0 do
-        -- closig while holding the button
-    end
-    
-    gpio.write(DOORDOWN,gpio.HIGH)
-    gpio.write(SWITCH,gpio.HIGH)
-    doorIsMoving = false
-    donecb()
-end
-
 function isDoorMoving()
     return doorIsMoving
 end
-
-gpio.trig(LOGOUTBUTTON, "down", function()
-    tmr.alarm(5, 200, 0, function() -- debounce
-        if not doorIsMoving and gpio.read(LOGOUTBUTTON) == 0 then
-            blink_led_stop()
-            print("Got shutdown signal")
-            doorDown(function()
-                blink_led()
-            end)
-        end
-    end)
-end)
