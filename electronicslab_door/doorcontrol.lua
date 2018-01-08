@@ -42,12 +42,15 @@ function doorDown(donecb)
     gpio.write(SWITCH,gpio.LOW)
     gpio.write(DOORUP,gpio.HIGH)
     gpio.write(DOORDOWN,gpio.LOW)
-    tmr.alarm(4, 27000, 0, function() -- measured ~25sec
-        gpio.write(DOORDOWN,gpio.HIGH)
-        gpio.write(SWITCH,gpio.HIGH)
-        doorIsMoving = false
-        donecb()
-    end)
+    
+    while gpio.read(LOGOUTBUTTON) == 0 do
+		-- closig while holding the button
+    end
+    
+	gpio.write(DOORDOWN,gpio.HIGH)
+	gpio.write(SWITCH,gpio.HIGH)
+	doorIsMoving = false
+    donecb()
 end
 
 function isDoorMoving()
